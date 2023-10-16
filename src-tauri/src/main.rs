@@ -1,0 +1,53 @@
+// Prevents additional console window on Windows in release, DO NOT REMOVE!!
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
+// use std::{thread::sleep, time::Duration};
+use tauri::Manager;
+
+fn get_stats() {}
+
+#[derive(Clone, serde::Serialize)]
+struct Payload {
+    message: String,
+}
+
+fn main() {
+    tauri::Builder::default()
+        .setup(|app| {
+            // let polling_rate: u64 = 2000;
+            let id = app.listen_global("start_monitoring", |event| {
+                println!("got event-name with payload {:?}", event.payload());
+                // polling_rate = event.payload()
+            });
+            app.unlisten(id);
+            // TODO: send result of this method
+            get_stats();
+            //     app.emit_all(
+            //         "event-name",
+            //         Payload {
+            //             message: "Tauri is awesome!".into(),
+            //         },
+            //     )
+
+            // std::thread::spawn(move || {
+            // loop {
+            //     // Replace this with your data to send to the frontend
+            //     let data = "Your data to send";
+
+            //     app.emit_all(
+            //         "event-name",
+            //         Payload {
+            //             message: "Tauri is awesome!".into(),
+            //         },
+            //     )
+            //     .unwrap();
+
+            //     // Sleep for 1 second
+            //     sleep(Duration::from_millis(polling_rate));
+            // }
+            // });
+            Ok(())
+        })
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
