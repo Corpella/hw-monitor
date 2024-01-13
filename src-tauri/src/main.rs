@@ -1,16 +1,20 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::ffi::CStr;
+use std::ffi::CString;
+
 // use std::{thread::sleep, time::Duration};
 use tauri::Manager;
 
-fn get_stats() {}
+extern "C" {
+    fn GetHardwareInfo(key: *const i8) -> *const i8;
+}
 
 #[derive(Clone, serde::Serialize)]
 struct Payload {
     message: String,
 }
-
 fn main() {
     tauri::Builder::default()
         .setup(|app| {
@@ -19,9 +23,15 @@ fn main() {
                 println!("got event-name with payload {:?}", event.payload());
                 // polling_rate = event.payload()
             });
+
             app.unlisten(id);
             // TODO: send result of this method
-            get_stats();
+            unsafe {
+                let c_string = CString::new("Cpu,GpuNvidia").unwrap();
+
+                let result = GetHardwareInfo(c_string.as_ptr());
+                println!("{:?}", CStr::from_ptr(result))
+            };
             //     app.emit_all(
             //         "event-name",
             //         Payload {
