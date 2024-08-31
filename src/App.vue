@@ -4,7 +4,10 @@ import Home from './views/Home.vue'
 
 const { startMonitoring } = useHardware()
 
-startMonitoring(1000)
+startMonitoring({
+  pollingRate: 3,
+  hardwareTypes: ['GpuNvidia', 'Cpu', 'Psu', 'Motherboard'],
+})
 </script>
 
 <template>
