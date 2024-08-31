@@ -11,17 +11,20 @@
     "tauri": "tauri dev"
   },
   "dependencies": {
-    "@tauri-apps/api": "^1.4.0",
+    "@tauri-apps/api": "^1",
     "@unocss/reset": "^0.56.0",
+    "chart.js": "^4.4.4",
     "pinia": "^2.1.6",
-    "vue": "^3.3.4"
+    "vue": "^3.3.4",
+    "vue-chartkick": "^1.1.0",
+    "vue-data-ui": "^2.2.74"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.4.0",
-    "@vitejs/plugin-vue": "^4.2.3",
-    "typescript": "^5.0.2",
-    "unocss": "^0.55.7",
-    "vite": "^4.4.4",
-    "vue-tsc": "^1.8.5"
+    "@vitejs/plugin-vue": "^5.0.5",
+    "typescript": "^5.2.2",
+    "unocss": "^0.62.3",
+    "vite": "^5.3.1",
+    "vue-tsc": "^2.0.22"
   }
 }
