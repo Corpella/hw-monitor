@@ -7,8 +7,18 @@ use std::ffi::CString;
 // use std::{thread::sleep, time::Duration};
 use tauri::Manager;
 
-extern "C" {
-    fn GetHardwareInfo(key: *const i8) -> *const i8;
+// extern "C" {
+//     fn GetHardwareInfo(key: *const i8) -> *const i8;
+// }
+
+fn call_dynamic(key: *const i8) -> Result<*const i8, Box<dyn std::error::Error>> {
+    print!("Enter function declaration");
+    unsafe {
+        let lib = libloading::Library::new("./native-library/WindowsMonitor.dll")?;
+        let func: libloading::Symbol<unsafe extern "C" fn(key: *const i8) -> *const i8> =
+            lib.get(b"GetHardwareInfo")?;
+        Ok(func(key))
+    }
 }
 
 #[derive(Clone, serde::Serialize)]
@@ -29,7 +39,8 @@ fn main() {
             unsafe {
                 let c_string = CString::new("Cpu,GpuNvidia").unwrap();
 
-                let result = GetHardwareInfo(c_string.as_ptr());
+                // let result = GetHardwareInfo(c_string.as_ptr());
+                let result = call_dynamic(c_string.as_ptr()).unwrap();
                 println!("{:?}", CStr::from_ptr(result))
             };
             //     app.emit_all(
