@@ -25,16 +25,15 @@ struct Payload {
 }
 
 #[tauri::command]
-fn init_process(polling_rate: u64, window: Window) {
+fn init_process(hardware_type: &str, polling_rate: u64, window: Window) {
+    let hardware_type = hardware_type.to_string();
     std::thread::spawn(move || loop {
-        let c_string = CString::new("Cpu,GpuNvidia").unwrap();
+        let c_string = CString::new(hardware_type.clone()).unwrap();
 
         // let result = GetHardwareInfo(c_string.as_ptr());
         let result = call_dynamic(c_string.as_ptr()).unwrap();
-
         let c_str = unsafe { CStr::from_ptr(result) };
         let rust_string = c_str.to_str().unwrap().to_owned();
-        // println!("{:?}", rust_string);
         window
             .emit(
                 "monitoring_data",
@@ -49,7 +48,7 @@ fn init_process(polling_rate: u64, window: Window) {
 
 fn main() {
     tauri::Builder::default()
-        .setup(|app| {
+        .setup(|_app| {
             // let main_window = app.get_window("main").unwrap();
             // let polling_rate: u64 = 2000;
             // let id = app.listen_global("start-monitoring", |event| {
