@@ -1,4 +1,4 @@
-import { VueUiSparklineConfig, VueUiXyConfig } from 'vue-data-ui'
+import { VueUiSparklineConfig } from 'vue-data-ui'
 
 export const getChartConfig = ({
   text = 'Title',

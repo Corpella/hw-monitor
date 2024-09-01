@@ -45,7 +45,7 @@ type SensorUnit =
 
 export type SensorInfo = {
   Name: string
-  Value: number | string
+  Value: number
   Type: SensorType
   Unit: SensorUnit
 }
