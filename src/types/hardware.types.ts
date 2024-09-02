@@ -52,7 +52,7 @@ export type SensorInfo = {
 
 export type HardwareInfo = {
   Name: string
-  HardwareType: string
+  HardwareType: HardwareType
   Sensors: SensorInfo[]
 }
 
