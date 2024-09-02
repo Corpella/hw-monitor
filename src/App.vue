@@ -6,7 +6,7 @@ const { startMonitoring } = useHardware()
 
 startMonitoring({
   pollingRate: 3,
-  hardwareTypes: ['GpuNvidia', 'Cpu', 'Psu', 'Motherboard'],
+  hardwareTypes: ['GpuNvidia', 'Cpu', 'Psu', 'Motherboard', 'Memory'],
 })
 </script>
 
