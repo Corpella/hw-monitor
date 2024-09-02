@@ -1,44 +1,54 @@
 import { invoke } from '@tauri-apps/api'
 import { listen } from '@tauri-apps/api/event'
 import { defineStore } from 'pinia'
-import { reactive, ref } from 'vue'
+import { ref } from 'vue'
 import { HardwareData, HardwareType } from '../types/hardware.types'
 
-import { VueUiSparklineDatasetItem } from 'vue-data-ui'
+import { HardwareDataStructure, SensorData } from '../types/chart.types'
 
 export const useHardware = defineStore('useHardware', () => {
   const activeListener = ref()
 
-  const maxValue = 30
-
-  const stats = reactive<Record<string, VueUiSparklineDatasetItem[]>>({})
+  const stats = ref<HardwareDataStructure[]>([])
 
   const setTemperatureSensors = (parsedData: HardwareData) => {
     for (const hardwareName in parsedData) {
       const hardwareData = parsedData[hardwareName]
-      // Initial implementation, retrieve only temps
-      const tempSensor = hardwareData.Sensors.find(
-        ({ Type, Name }) => Name === 'GPU Hot Spot' || Type === 'Temperature'
+
+      const period = new Date().toTimeString().slice(0, 8)
+
+      const existingHardware = stats.value.find(
+        (stat) => stat.hardwareName === hardwareName
       )
 
-      if (!tempSensor) continue
-
-      const dataElement: VueUiSparklineDatasetItem = {
-        period: new Date().toTimeString().slice(0, 8),
-        value: tempSensor.Value as number,
+      const chartData: HardwareDataStructure = {
+        hardwareName,
+        hardwareType: hardwareData.HardwareType,
+        sensors: hardwareData.Sensors.map(
+          ({ Name, Unit, Value }): SensorData => ({
+            sensorName: Name,
+            sensorUnit: Unit === 'Unknown' ? '' : Unit,
+            data: [{ period, value: Value }],
+          })
+        ),
       }
 
-      if (!(hardwareName in stats)) {
-        stats[hardwareName] = [dataElement]
-        return
+      if (!existingHardware) {
+        chartData.sensors.length && stats.value.push(chartData)
+        continue
       }
 
-      stats[hardwareName][maxValue] && stats[hardwareName].shift()
-
-      stats[hardwareName].push(dataElement)
-
-      // console.log({ stats })
+      existingHardware.sensors.forEach((sensor, index) => {
+        sensor.data.push(chartData.sensors[index].data[0])
+      })
     }
+
+    // const existingHW = stats.value.find(({ name }) => name === hardwareName)
+
+    // existingHW
+    //   ? existingHW.data.push(dataElement)
+    //   : stats.value.push({ name: hardwareName, data: [dataElement] })
+    // }
   }
 
   const setStats = (newStats: string) => {
