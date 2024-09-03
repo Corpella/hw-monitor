@@ -1,18 +1,18 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::ffi::CStr;
-use std::ffi::CString;
+use libloading::Library;
+use std::{
+    ffi::{CStr, CString},
+    sync::Arc,
+};
+use tauri::{Manager, State, Window};
+struct AppState {
+    lib: Arc<Library>,
+}
 
-use tauri::Window;
-
-// extern "C" {
-//     fn GetHardwareInfo(key: *const i8) -> *const i8;
-// }
-
-fn call_dynamic(key: *const i8) -> Result<*const i8, Box<dyn std::error::Error>> {
+fn call_dynamic(lib: &Library, key: *const i8) -> Result<*const i8, Box<dyn std::error::Error>> {
     unsafe {
-        let lib = libloading::Library::new("./native-library/WindowsMonitor.dll")?;
         let func: libloading::Symbol<unsafe extern "C" fn(key: *const i8) -> *const i8> =
             lib.get(b"GetHardwareInfo")?;
         Ok(func(key))
@@ -25,20 +25,20 @@ struct Payload {
 }
 
 #[tauri::command]
-fn init_process(hardware_type: &str, polling_rate: u64, window: Window) {
+fn init_process(hardware_type: &str, polling_rate: u64, window: Window, state: State<AppState>) {
     let hardware_type = hardware_type.to_string();
+    let lib = Arc::clone(&state.lib);
     std::thread::spawn(move || loop {
         let c_string = CString::new(hardware_type.clone()).unwrap();
 
-        // let result = GetHardwareInfo(c_string.as_ptr());
-        let result = call_dynamic(c_string.as_ptr()).unwrap();
+        let result = call_dynamic(&lib, c_string.as_ptr()).unwrap();
         let c_str = unsafe { CStr::from_ptr(result) };
         let rust_string = c_str.to_str().unwrap().to_owned();
         window
             .emit(
                 "monitoring_data",
                 Payload {
-                    message: rust_string.into(),
+                    message: rust_string,
                 },
             )
             .unwrap();
@@ -48,12 +48,10 @@ fn init_process(hardware_type: &str, polling_rate: u64, window: Window) {
 
 fn main() {
     tauri::Builder::default()
-        .setup(|_app| {
-            // let main_window = app.get_window("main").unwrap();
-            // let polling_rate: u64 = 2000;
-            // let id = app.listen_global("start-monitoring", |event| {
-            //     println!("got event-name with payload {:?}", event.payload());
-            // });
+        .setup(|app| {
+            let lib = unsafe { Library::new("./native-library/WindowsMonitor.dll")? };
+            let state = AppState { lib: Arc::new(lib) };
+            app.manage(state);
 
             Ok(())
         })
